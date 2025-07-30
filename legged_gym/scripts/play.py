@@ -10,12 +10,13 @@ from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Log
 
 import numpy as np
 import torch
+from tqdm import tqdm
 
 
 def play(args):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
-    env_cfg.env.num_envs = min(env_cfg.env.num_envs, 100)
+    env_cfg.env.num_envs = min(env_cfg.env.num_envs, 5)
     env_cfg.terrain.num_rows = 5
     env_cfg.terrain.num_cols = 5
     env_cfg.terrain.curriculum = False
@@ -24,6 +25,9 @@ def play(args):
     env_cfg.domain_rand.push_robots = False
 
     env_cfg.env.test = True
+
+    # prepare command
+    cmds = torch.tensor([1, 0, 0, 0, 0.5, 0]).unsqueeze(0).expand(env_cfg.env.num_envs, -1).clone()
 
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
@@ -39,7 +43,14 @@ def play(args):
         export_policy_as_jit(ppo_runner.alg.actor_critic, path)
         print('Exported policy as jit script to: ', path)
 
-    for i in range(10*int(env.max_episode_length)):
+    height_values = torch.tensor([-0.3, -0.1, 0.1, 0.3])
+    total_steps = 1000
+    change_interval = total_steps // 4
+
+    current_phase = -1
+
+    for i in tqdm(range(total_steps)):
+        obs[:, 6:12] = cmds
         actions = policy(obs.detach())
         obs, _, rews, dones, infos = env.step(actions.detach())
 

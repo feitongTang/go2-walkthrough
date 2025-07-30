@@ -2,7 +2,17 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class GO2RoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
-        num_observations = 45
+        num_observations = 112   # ang_vel(3) + gravity(3) + commands + dof_pos(12) + dof_vel(12) + actions(12) + leg_phase(4)
+        num_privileged_obs = 115
+        num_history = 5
+        observe_body_height = False
+        observe_gaits = True
+
+    class commands( LeggedRobotCfg.commands ):
+        num_commands = 6    # lin_vel_x, lin_vel_y, ang_vel_yaw, phase, offset, bound
+        class ranges( LeggedRobotCfg.commands.ranges ):
+            body_height = [-0.25, 0.15]
+
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
         default_joint_angles = { # = target angles [rad] when action = 0.0
@@ -42,15 +52,25 @@ class GO2RoughCfg( LeggedRobotCfg ):
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.25
+        base_height_target = 0.3
         class scales( LeggedRobotCfg.rewards.scales ):
+            ang_vel_xy = -0.05
             torques = -0.0002
             dof_pos_limits = -10.0
+            base_height = -1
+
+    class normalization( LeggedRobotCfg.normalization ):
+        class obs_scales( LeggedRobotCfg.normalization.obs_scales ):
+            body_height = 2.0
+            gait_phase = 1
+            gait_offset = 1
+            gait_bound = 1
 
 class GO2RoughCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
         entropy_coef = 0.01
     class runner( LeggedRobotCfgPPO.runner ):
+        max_iterations = 10000
         run_name = ''
         experiment_name = 'rough_go2'
 

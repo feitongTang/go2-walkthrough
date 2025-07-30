@@ -408,13 +408,13 @@ class LeggedRobot(BaseTask):
         self.add_noise = self.cfg.noise.add_noise
         noise_scales = self.cfg.noise.noise_scales
         noise_level = self.cfg.noise.noise_level
-        noise_vec[:3] = noise_scales.lin_vel * noise_level * self.obs_scales.lin_vel
-        noise_vec[3:6] = noise_scales.ang_vel * noise_level * self.obs_scales.ang_vel
-        noise_vec[6:9] = noise_scales.gravity * noise_level
-        noise_vec[9:12] = 0. # commands
-        noise_vec[12:12+self.num_actions] = noise_scales.dof_pos * noise_level * self.obs_scales.dof_pos
-        noise_vec[12+self.num_actions:12+2*self.num_actions] = noise_scales.dof_vel * noise_level * self.obs_scales.dof_vel
-        noise_vec[12+2*self.num_actions:12+3*self.num_actions] = 0. # previous actions
+        noise_vec[: 3] = noise_scales.lin_vel * noise_level * self.obs_scales.lin_vel
+        noise_vec[3: 6] = noise_scales.ang_vel * noise_level * self.obs_scales.ang_vel
+        noise_vec[6: 9] = noise_scales.gravity * noise_level
+        noise_vec[9: 12] = 0. # commands
+        noise_vec[12: 12 + self.num_actions] = noise_scales.dof_pos * noise_level * self.obs_scales.dof_pos
+        noise_vec[12 + self.num_actions: 12 + 2 * self.num_actions] = noise_scales.dof_vel * noise_level * self.obs_scales.dof_vel
+        noise_vec[12 + 2 * self.num_actions: 12 + 3 * self.num_actions] = 0. # previous actions
 
         return noise_vec
 
